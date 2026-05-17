@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vito — Rides. Deliveries. Everyday.</title>
+    <meta name="description" content="Vito - Your ride for every day. Get a ride, send a package, or order from VitoMart.">
+    
+    <!-- Vito Design Tokens (dark theme) -->
+    <style>
+        :root {
+            --background: #0A0E14;
+            --background-secondary: #10151C;
+            --background-tertiary: #1A2028;
+            --primary: #1AE694;
+            --primary-dim: #0F8A57;
+            --content: #F0F4F8;
+            --content-secondary: #8B9EB7;
+            --border: rgba(240, 244, 248, 0.06);
+            
+            --font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'Geist Mono', ui-monospace, monospace;
+            
+            --spacing-xs: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-xxl: 48px;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            background: var(--background);
+            color: var(--content);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg);
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            border-radius: var(--radius-md);
+            margin: 0 auto var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo svg {
+            width: 40px;
+            height: 40px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+            letter-spacing: -0.5px;
+        }
+        
+        .tagline {
+            color: var(--content-secondary);
+            font-size: 16px;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .headline {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            line-height: 1.2;
+        }
+        
+        .subheadline {
+            color: var(--content-secondary);
+            font-size: 16px;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .subheadline.highlight {
+            color: var(--primary);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--primary);
+            color: var(--background);
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: var(--radius-xl);
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+        
+        .cta-button:hover {
+            transform: scale(1.02);
+            opacity: 0.9;
+        }
+        
+        .cta-button:active {
+            transform: scale(0.98);
+        }
+        
+        .error-state {
+            padding: var(--spacing-xl);
+            background: var(--background-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        
+        .error-state h2 {
+            font-size: 20px;
+            margin-bottom: var(--spacing-xs);
+            color: #FF5C5C;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xxl);
+        }
+        
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--background-tertiary);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .discount {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        footer {
+            margin-top: var(--spacing-xxl);
+            color: var(--content-secondary);
+            font-size: 12px;
+        }
+        
+        footer a {
+            color: var(--content-secondary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = window.VITO_SUPABASE_URL || 'https://placeholder.supabase.co';
+        const API_KEY = window.VITO_API_KEY || 'placeholder';
+        
+        async function fetchToken(url) {
+            const params = new URLSearchParams(url.search);
+            const token = params.get('t');
+            const kind = params.get('kind');
+            
+            if (!token) {
+                showLanding();
+                return;
+            }
+            
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/functions/v1/validate-qr-token?token=${token}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${API_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    showError();
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (kind === 'onboard') {
+                    showOnboarding(data);
+                } else {
+                    showReferral(data);
+                }
+            } catch (e) {
+                showError();
+            }
+        }
+        
+        function showOnboarding(data) {
+            document.getElementById('app').innerHTML = `
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="${'#0A0E14'}" stroke-width="2">
+                        <path d="M17 9l-5-5-5 5"/>
+                        <path d="M12 4v16"/>
+                    </svg>
+                </div>
+                <h1>Vito</h1>
+                <p class="tagline">Rides. Deliveries. Everyday.</p>
+                <div class="container">
+                    <h2 class="headline">Ready to drive with Vito?</h2>
+                    <p class="subheadline">Join thousands of drivers earning with Vito</p>
+                    <a href="${buildPlayStoreLink('driver', data.token)}" class="cta-button">
+                        Download the driver app
+                    </a>
+                </div>
+                <footer>
+                    <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
+                </footer>
+            `;
+        }
+        
+        function showReferral(data) {
+            const driverName = data.driver_name || 'a driver';
+            const bonusAmount = data.bonus_amount || 5;
+            
+            document.getElementById('app').innerHTML = `
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="${'#0A0E14'}" stroke-width="2">
+                        <path d="M17 9l-5-5-5 5"/>
+                        <path d="M12 4v16"/>
+                    </svg>
+                </div>
+                <h1>Vito</h1>
+                <p class="tagline">Rides. Deliveries. Everyday.</p>
+                <div class="container">
+                    <h2 class="headline">${escapeHtml(driverName)} is inviting you to try Vito</h2>
+                    <p class="subheadline highlight">Get <span class="discount">$${bonusAmount}</span> in ride credit on your first trip</p>
+                    <a href="${buildPlayStoreLink('client', data.token)}" class="cta-button">
+                        Get Vito
+                    </a>
+                </div>
+                <footer>
+                    <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
+                </footer>
+            `;
+        }
+        
+        function showLanding() {
+            document.getElementById('app').innerHTML = `
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="${'#0A0E14'}" stroke-width="2">
+                        <path d="M17 9l-5-5-5 5"/>
+                        <path d="M12 4v16"/>
+                    </svg>
+                </div>
+                <h1>Vito</h1>
+                <p class="tagline">Rides. Deliveries. Everyday.</p>
+                <div class="container">
+                    <a href="${buildPlayStoreLink('client')}" class="cta-button">
+                        Get a ride
+                    </a>
+                </div>
+                <footer>
+                    <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
+                </footer>
+            `;
+        }
+        
+        function showError() {
+            document.getElementById('app').innerHTML = `
+                <div class="error-state">
+                    <h2>This link has expired</h2>
+                    <p class="subheadline">Please ask for a new link from the person who invited you.</p>
+                </div>
+            `;
+        }
+        
+        function buildPlayStoreLink(appType, referrerToken) {
+            const base = `https://play.google.com/store/apps/details?id=com.vito.${appType}`;
+            if (referrerToken) {
+                return `${base}&referrer=${encodeURIComponent(referrerToken)}`;
+            }
+            return base;
+        }
+        
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        
+        // Initialize
+        fetchToken(window.location);
+    </script>
+</body>
+</html>

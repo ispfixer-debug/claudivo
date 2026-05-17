@@ -1,0 +1,8 @@
+keystore/*.jks
+local.properties
+.gradle/
+build/
+**/build/
+*.realm
+_ux_ref/
+_arch_ref/

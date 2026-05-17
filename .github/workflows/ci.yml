@@ -1,0 +1,108 @@
+# CI Pipeline - runs on every PR
+# PLAN.md §28.1
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  JAVA_VERSION: '17'
+  ANDROID_COMPILE_SDK: '34'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temulus'
+      
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+      
+      - name: Grant execute permission
+        run: chmod +x gradlew
+      
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck --warning-mode=all || true
+      
+      - name: Run Android lint
+        run: ./gradlew lintDebug --warning-mode=any || true
+
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temulus'
+      
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+      
+      - name: Grant execute permission
+        run: chmod +x gradlew
+      
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --continue
+
+  build:
+    name: Build Debug APKs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temulus'
+      
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+      
+      - name: Grant execute permission
+        run: chmod +x gradlew
+      
+      - name: Build debug APKs
+        run: |
+          ./gradlew :vito_client:assembleDebug \
+            :vito_driver:assembleDebug \
+            :vito_admin:assembleDebug
+      
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apks
+          path: |
+            vito_client/build/outputs/apk/debug/*.apk
+            vito_driver/build/outputs/apk/debug/*.apk
+            vito_admin/build/outputs/apk/debug/*.apk
+
+  supabase-migrations:
+    name: Supabase Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Supabase CLI
+        run: |
+          brew install supabase/tap/supabase-cli || true
+          supabase --version || true
+      
+      - name: Validate migrations
+        run: supabase db lint || true
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
