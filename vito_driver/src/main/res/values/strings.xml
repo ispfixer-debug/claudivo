@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Vito</string>
+    <string name="app_name">Vito Driver</string>
+    <string name="driver_invitation">Driver Invitation</string>
+    <string name="invitation_code">Invitation Code</string>
+    <string name="continue_btn">Continue</string>
+    <string name="earnings">Earnings</string>
+    <string name="today_earnings">Today\u0027s Earnings</string>
+    <string name="driver_home">Driver Home</string>
+    <string name="waiting_for_jobs">Waiting for jobs...</string>
+    <string name="go_online_hint">Go online to receive jobs</string>
+    <string name="new_job_request">New Job Request</string>
+    <string name="fare">Fare</string>
+    <string name="distance">Distance</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="pickup_location">Pickup</string>
+    <string name="dropoff_location">Dropoff</string>
 </resources>

@@ -1,110 +1,110 @@
 package com.vito.client.ui.auth
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
-import com.vito.design.VitoColors
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vito.client.R
 import com.vito.design.VitoSpacing
+import com.vito.design.VitoTypography
 import com.vito.design.VitoTheme
 import com.vito.design.component.VitoButton
 import com.vito.design.component.VitoButtonSize
-import com.vito.design.component.VitoButtonStyle
+import com.vito.design.component.input.VitoPinField
+import com.vito.design.component.input.VitoTextField
 
 /**
- * Login screen - phone number entry.
- * Per PLAN.md §23 - Client authentication
+ * Login screen - username + PIN entry.
+ * Per PLAN.md §23 - Client authentication: username + 6-digit PIN ONLY. No phone, no OTP, no email.
  */
 @Composable
 fun LoginScreen(
-    onPhoneSubmitted: (String) -> Unit,
-    onSkipToHome: () -> Unit
+    viewModel: LoginViewModel = hiltViewModel(),
+    onLoginSuccess: () -> Unit,
 ) {
-    var phone by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
+    val typography = VitoTypography
+    val s by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { if (it is LoginEvent.Success) onLoginSuccess() }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(VitoSpacing.screenHorizontal),
+            .padding(horizontal = VitoSpacing.screenHorizontal),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Welcome to Vito",
-            style = MaterialTheme.typography.headlineLarge,
-            color = VitoColors.contentPrimary
+            text = "vito",
+            style = typography.displaySmall,
+            color = VitoTheme.colorScheme.primary
         )
 
-        Spacer(modifier = Modifier.height(VitoSpacing.sm))
+        Spacer(modifier = Modifier.height(VitoSpacing.xs))
 
         Text(
-            text = "Enter your phone number",
-            style = MaterialTheme.typography.bodyMedium,
-            color = VitoColors.contentSecondary
+            text = stringResource(R.string.login_headline),
+            style = typography.bodyMedium,
+            color = VitoTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(VitoSpacing.xxl))
 
-        OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone number") },
-            placeholder = { Text("+1 (555) 000-0000") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Phone,
-                imeAction = ImeAction.Done
-            ),
-            singleLine = true,
+        VitoTextField(
+            value = s.username,
+            onValueChange = { viewModel.updateUsername(it) },
+            label = stringResource(R.string.username_label),
+            hint = stringResource(R.string.username_placeholder),
+            enabled = !s.isLoading,
             modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = VitoColors.primaryAccent,
-                unfocusedBorderColor = VitoColors.borderStrong,
-                focusedLabelColor = VitoColors.primaryAccent
-            )
         )
 
-        if (error != null) {
-            Spacer(modifier = Modifier.height(VitoSpacing.sm))
-            Text(
-                text = error!!,
-                color = VitoColors.destructive,
-                style = MaterialTheme.typography.bodySmall
-            )
+        Spacer(modifier = Modifier.height(VitoSpacing.md))
+
+        VitoPinField(
+            value = s.pin,
+            onValueChange = { viewModel.updatePin(it) },
+            isError = s.error != null,
+            enabled = !s.isLoading,
+            length = 6,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        AnimatedVisibility(visible = s.error != null) {
+            Column {
+                Spacer(modifier = Modifier.height(VitoSpacing.sm))
+                Text(
+                    text = s.error ?: "",
+                    style = typography.bodySmall,
+                    color = VitoTheme.colorScheme.error
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(VitoSpacing.xl))
 
         VitoButton(
-            text = if (isLoading) "Sending…" else "Continue",
-            onClick = {
-                if (phone.length < 10) {
-                    error = "Please enter a valid phone number"
-                    return@VitoButton
-                }
-                isLoading = true
-                error = null
-                onPhoneSubmitted(phone)
-            },
-            loading = isLoading,
+            text = if (s.isLoading) stringResource(R.string.login_loading) else stringResource(R.string.login_submit),
+            onClick = { viewModel.login() },
+            loading = s.isLoading,
             modifier = Modifier.fillMaxWidth(),
-            size = VitoButtonSize.Large
+            size = VitoButtonSize.Large,
         )
 
-        Spacer(modifier = Modifier.height(VitoSpacing.md))
-
-        // Demo skip for development
-        TextButton(onClick = onSkipToHome) {
-            Text(
-                text = "Skip (demo)",
-                color = VitoColors.contentSecondary
-            )
+        s.forgotPin?.let { showForgot ->
+            Spacer(modifier = Modifier.height(VitoSpacing.md))
+            TextButton(onClick = { viewModel.showForgotPinFlow() }) {
+                Text(
+                    text = stringResource(R.string.forgot_pin),
+                    color = VitoTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

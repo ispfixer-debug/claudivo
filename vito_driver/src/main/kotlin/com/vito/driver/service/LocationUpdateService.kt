@@ -3,58 +3,51 @@ package com.vito.driver.service
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-
 import com.vito.driver.ui.home.DriverHomeActivity
 
 /**
  * Location update service - foreground service for driver tracking.
- * Per PLAN.md §16.2 - sends location to dispatch algorithm
+ * Per RULE #9 - uses android.location.LocationManager fallback
  */
 class LocationUpdateService : Service() {
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
+    private var locationManager: LocationManager? = null
+    private val locationListener = object : android.location.LocationListener {
+        override fun onLocationChanged(location: android.location.Location) {
+            // TODO: Send location update to server
+        }
+        override fun onProviderEnabled(provider: String) {}
+        override fun onProviderDisabled(provider: String) {}
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { location ->
-                    // TODO: Send to Supabase/Edge Function
-                    // Update driver's location in database
-                }
-            }
-        }
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
-        startLocationUpdates()
+        when (intent?.action) {
+            ACTION_START -> startTracking()
+            ACTION_STOP -> stopTracking()
+        }
         return START_STICKY
     }
 
-    private fun startLocationUpdates() {
-        // Using old location API for compatibility
-        val locationRequest = LocationRequest()
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        locationRequest.interval = LOCATION_INTERVAL
-        locationRequest.fastestInterval = FASTEST_INTERVAL
-
+    private fun startTracking() {
+        startForeground(NOTIFICATION_ID, createNotification().build())
         try {
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
+            locationManager?.requestLocationUpdates(
+                android.location.LocationManager.GPS_PROVIDER,
+                LOCATION_INTERVAL,
+                0f,
+                locationListener,
                 Looper.getMainLooper()
             )
         } catch (e: SecurityException) {
@@ -62,22 +55,19 @@ class LocationUpdateService : Service() {
         }
     }
 
-    private fun createNotification(): Notification {
-        createNotificationChannel()
-        
-        val intent = Intent(this, DriverHomeActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
+    private fun stopTracking() {
+        locationManager?.removeUpdates(locationListener)
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
 
+    private fun createNotification(): NotificationCompat.Builder {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Vito Driver")
-            .setContentText("Location tracking active")
+            .setContentTitle(NOTIFICATION_TITLE)
+            .setContentText(NOTIFICATION_TEXT)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentIntent(pendingIntent)
             .setOngoing(true)
-            .build()
+            .setPriority(NotificationCompat.PRIORITY_LOW)
     }
 
     private fun createNotificationChannel() {
@@ -94,17 +84,13 @@ class LocationUpdateService : Service() {
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    override fun onDestroy() {
-        super.onDestroy()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-    }
-
     companion object {
-        const val CHANNEL_ID = "vito_driver_location"
-        const val NOTIFICATION_ID = 1002
-        const val LOCATION_INTERVAL = 5000L
-        const val FASTEST_INTERVAL = 2000L
+        const val ACTION_START = "ACTION_START"
+        const val ACTION_STOP = "ACTION_STOP"
+        private const val NOTIFICATION_ID = 1
+        private const val CHANNEL_ID = "driver_location"
+        private const val NOTIFICATION_TITLE = "Vito Driver"
+        private const val NOTIFICATION_TEXT = "Tracking your location..."
+        private const val LOCATION_INTERVAL = 10000L
     }
 }

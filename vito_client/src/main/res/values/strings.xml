@@ -1,4 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vito</string>
+    
+    <!-- Auth -->
+    <string name="login_headline">Welcome back</string>
+    <string name="username_label">Username</string>
+    <string name="username_placeholder">Enter username</string>
+    <string name="password_label">PIN</string>
+    <string name="login_loading">Signing in…</string>
+    <string name="login_submit">Sign in</string>
+    <string name="forgot_pin">Forgot PIN?</string>
+    
+    <!-- Token Gate -->
+    <string name="qr_gate_headline">To join Vito, scan an invitation QR code.</string>
+    <string name="qr_scanner_placeholder">Point camera at QR code</string>
+    <string name="qr_scan_prompt">Scan QR code</string>
+    <string name="qr_manual_entry">Enter code manually</string>
+    
+    <!-- Registration -->
+    <string name="create_account">Create Account</string>
+    <string name="create_account_subtitle">Join Vito with your invitation</string>
+    <string name="display_name_label">Display Name</string>
+    <string name="display_name_placeholder">Your name</string>
+    <string name="creating">Creating…</string>
+    
+    <!-- Ride -->
+    <string name="where_to">Where to?</string>
+    <string name="pickup_location">Pickup location</string>
+    <string name="destination">Destination</string>
+    <string name="estimated_fare">Estimated fare</string>
+    <string name="distance_format">%1$.1f km</string>
+    <string name="request_ride">Request ride</string>
+    <string name="driver_enroute">Driver en route</string>
+    <string name="driver_arriving">Driver arriving</string>
+    <string name="ride_in_progress">Ride in progress</string>
+    <string name="ride_completed">Ride completed</string>
+    <string name="cancel_ride">Cancel ride</string>
+    
+    <!-- Send -->
+    <string name="send_package">Send Package</string>
+    <string name="recipient_name">Recipient name</string>
+    <string name="recipient_phone">Recipient phone</string>
+    <string name="delivery_fee">Delivery fee</string>
+    <string name="request_send">Request send</string>
+    
+    <!-- Wallet -->
+    <string name="wallet">Wallet</string>
+    <string name="balance">Balance</string>
+    <string name="transactions">Transactions</string>
+    <string name="top_up">Top up</string>
+    
+    <!-- Profile -->
+    <string name="change_pin">Change PIN</string>
+    <string name="sign_out">Sign out</string>
+    
+    <!-- Driver -->
+    <string name="driver_invitation">Driver invitation required</string>
+    <string name="invitation_code">Invitation code</string>
+    <string name="continue_btn">Continue</string>
+    <string name="new_job_request">New Job</string>
+    <string name="fare">Fare</string>
+    <string name="distance">Distance</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="you_are_online">Vito — You are online</string>
+    <string name="receiving_jobs">Receiving job requests</string>
+    <string name="mart">Mart</string>
 </resources>

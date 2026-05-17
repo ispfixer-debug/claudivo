@@ -20,6 +20,20 @@ object VitoTypography {
     val sans = FontFamily.Default // Should be replaced with Geist when available
     val mono = FontFamily.Monospace // Should be replaced with Geist Mono when available
 
+    // Direct access to type scale properties
+    val displaySmall: TextStyle get() = typeScale.displaySmall
+    val displayMedium: TextStyle get() = typeScale.displayMedium
+    val displayLarge: TextStyle get() = typeScale.displayLarge
+    val headlineMedium: TextStyle get() = typeScale.headlineMedium
+    val headlineSmall: TextStyle get() = typeScale.headlineSmall
+    val headlineLarge: TextStyle get() = typeScale.headlineLarge
+    val titleMedium: TextStyle get() = typeScale.titleMedium
+    val titleSmall: TextStyle get() = typeScale.titleSmall
+    val titleLarge: TextStyle get() = typeScale.titleLarge
+    val bodyMedium: TextStyle get() = typeScale.bodyMedium
+    val bodySmall: TextStyle get() = typeScale.bodySmall
+    val bodyLarge: TextStyle get() = typeScale.bodyLarge
+
     // Type scale (DESIGN.md §4.2)
     val typeScale = Typography(
         displayLarge = TextStyle(

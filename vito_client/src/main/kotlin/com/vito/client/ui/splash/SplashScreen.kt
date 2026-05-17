@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.vito.design.VitoColors
 import com.vito.design.VitoSpacing
 import com.vito.design.VitoTheme
+import com.vito.design.VitoTypography
 import kotlinx.coroutines.delay
 
 /**

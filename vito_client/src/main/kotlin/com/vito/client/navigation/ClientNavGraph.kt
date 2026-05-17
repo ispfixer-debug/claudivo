@@ -56,10 +56,7 @@ fun VitoNavGraph(
         
         composable(Screen.Login.route) {
             LoginScreen(
-                onPhoneSubmitted = { phone ->
-                    navController.navigate(Screen.Otp.createRoute(phone))
-                },
-                onSkipToHome = {
+                onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }

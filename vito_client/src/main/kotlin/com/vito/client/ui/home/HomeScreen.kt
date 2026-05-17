@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.vito.design.VitoColors
 import com.vito.design.VitoSpacing
 import com.vito.design.VitoTheme
+import com.vito.design.VitoTypography
 import com.vito.design.component.VitoCard
 import com.vito.design.component.VitoStatusChip
 import com.vito.design.component.VitoStatusChipVariant

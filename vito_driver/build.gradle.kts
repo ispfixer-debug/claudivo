@@ -47,7 +47,8 @@ android {
         jvmTarget = "17"
         freeCompilerArgs = listOf(
             "-opt-in=kotlinx.coroutines.DebugMetadata",
-            "-opt-in=kotlin.RequiresOptIn"
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
         )
     }
 
@@ -81,12 +82,16 @@ dependencies {
     // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.lifecycle)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.security)
     implementation(libs.androidx.multidex)
+
+    // Google Play Services Location
+    implementation(libs.maps.location)
 
     // Supabase (disabled - not in Maven)
     // implementation(libs.supabase.kt)
