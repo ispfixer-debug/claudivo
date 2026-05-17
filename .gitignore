@@ -6,3 +6,4 @@ build/
 *.realm
 _ux_ref/
 _arch_ref/
+releases/
